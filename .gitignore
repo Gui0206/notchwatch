@@ -1,0 +1,13 @@
+# Swift / SwiftPM build artifacts
+.build/
+.swiftpm/
+Package.resolved
+
+# Assembled app bundle (produced by build_app.sh / install.sh)
+NotchAIControl.app/
+
+# Config/settings backups
+*.bak.*
+
+# macOS
+.DS_Store

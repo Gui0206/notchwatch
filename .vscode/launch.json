@@ -1,0 +1,44 @@
+{
+  "configurations": [
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:notch_ai_control}",
+      "name": "Debug notch-hook",
+      "target": "notch-hook",
+      "configuration": "debug",
+      "preLaunchTask": "swift: Build Debug notch-hook"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:notch_ai_control}",
+      "name": "Release notch-hook",
+      "target": "notch-hook",
+      "configuration": "release",
+      "preLaunchTask": "swift: Build Release notch-hook"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:notch_ai_control}",
+      "name": "Debug NotchAIControl",
+      "target": "NotchAIControl",
+      "configuration": "debug",
+      "preLaunchTask": "swift: Build Debug NotchAIControl"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:notch_ai_control}",
+      "name": "Release NotchAIControl",
+      "target": "NotchAIControl",
+      "configuration": "release",
+      "preLaunchTask": "swift: Build Release NotchAIControl"
+    }
+  ]
+}
