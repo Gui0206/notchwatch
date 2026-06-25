@@ -114,6 +114,16 @@ if cliArgs.first == "codex" {
     bail()
 }
 
+// MARK: - Claude Desktop watcher mode
+//
+// `notch-hook desktop` is a long-lived process (spawned by NotchAIControl.app)
+// that tails the audit logs of Claude Desktop's local "cowork" agent sessions
+// and republishes each active one as a notch status file. It never returns.
+
+if cliArgs.first == "desktop" {
+    runDesktopWatcher()
+}
+
 // MARK: - Claude Code mode (stdin)
 
 let stdinData = FileHandle.standardInput.readDataToEndOfFile()
@@ -134,10 +144,9 @@ let sessionID = str("session_id")
         .replacingOccurrences(of: "=", with: "")
 let project = (cwd as NSString).lastPathComponent
 
-/// Turn a PreToolUse payload into a short human activity line.
-func summarizeTool() -> String {
-    let name = str("tool_name") ?? "tool"
-    let input = payload["tool_input"] as? [String: Any] ?? [:]
+/// Turn a tool name + input into a short human activity line. Shared by the
+/// Claude Code hook (PreToolUse) and the Claude Desktop watcher.
+func summarizeTool(name: String, input: [String: Any]) -> String {
     func s(_ k: String) -> String? { input[k] as? String }
     func base(_ path: String) -> String { (path as NSString).lastPathComponent }
 
@@ -186,7 +195,9 @@ case "UserPromptSubmit":
     state = "working"
     activity = str("prompt").map { "Thinking · \(truncate($0.replacingOccurrences(of: "\n", with: " "), 50))" } ?? "Thinking…"
 case "PreToolUse":
-    state = "working"; activity = summarizeTool()
+    state = "working"
+    activity = summarizeTool(name: str("tool_name") ?? "tool",
+                             input: payload["tool_input"] as? [String: Any] ?? [:])
 case "PostToolUse":
     state = "working"; activity = "Working…"
 case "Notification":

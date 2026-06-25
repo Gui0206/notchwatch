@@ -36,6 +36,7 @@ final class NotchController: NSObject, NSApplicationDelegate {
     private var globalMonitor: Any?
     private var localMonitor: Any?
     private var statusItem: NSStatusItem?
+    private var desktopWatcher: Process?
 
     private let windowExtraWidth: CGFloat = 48      // shadow breathing room
     private let expandedWindowHeight: CGFloat = 480 // generous; panel anchors at top
@@ -49,7 +50,35 @@ final class NotchController: NSObject, NSApplicationDelegate {
         buildStatusItem()
         installMouseMonitors()
         observeScreenChanges()
+        startDesktopWatcher()
         render()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        desktopWatcher?.terminate()
+    }
+
+    // MARK: Claude Desktop watcher
+    //
+    // Claude Desktop has no hooks, but its local agent sessions write audit logs
+    // we can tail. We run that watcher as a child `notch-hook desktop` process;
+    // it self-exits if we die, and writes the same status files the hooks do.
+    private func startDesktopWatcher() {
+        let candidates = [
+            Bundle.main.url(forResource: "notch-hook", withExtension: nil),
+            URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".notch-ai-control/bin/notch-hook"),
+        ].compactMap { $0 }
+        guard let bin = candidates.first(where: {
+            FileManager.default.isExecutableFile(atPath: $0.path)
+        }) else { return }
+
+        let p = Process()
+        p.executableURL = bin
+        p.arguments = ["desktop"]
+        p.standardOutput = FileHandle.nullDevice
+        p.standardError = FileHandle.nullDevice
+        try? p.run()
+        desktopWatcher = p
     }
 
     // MARK: Screen

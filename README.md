@@ -3,10 +3,11 @@
 Watch your AI coding agents from your MacBook notch.
 
 When idle, your notch looks completely normal. **Hover it** and it springs open
-into a panel showing every active **Claude Code** and **OpenAI Codex** session —
-what each is doing, whether it's **working**, **waiting for you**, or **done** —
-across as many projects as you have running. **Click a row** to jump straight to
-the window (VS Code, Cursor, iTerm, Terminal…) that session is running in.
+into a panel showing every active **Claude Code**, **Claude Desktop**, and
+**OpenAI Codex** session — what each is doing, whether it's **working**,
+**waiting for you**, or **done** — across as many projects as you have running.
+**Click a row** to jump straight to the window (VS Code, Cursor, iTerm, Terminal,
+Claude Desktop…) that session is running in.
 
 ```
   closed:   (nothing drawn — the notch looks stock)
@@ -97,6 +98,33 @@ notify = ["~/.notch-ai-control/bin/notch-hook", "codex"]
 Codex fires `notify` on **agent-turn-complete**, so a Codex session shows as
 **Done** with its last message when a turn finishes (and plays the chime).
 Concurrent Codex runs appear as separate rows.
+
+### Claude Desktop
+
+Claude Desktop has no hook or `notify` mechanism, but its local **agent / cowork**
+sessions run Claude Code under the hood and write a structured, append-only event
+log on disk:
+
+```
+~/Library/Application Support/Claude/local-agent-mode-sessions/…/local_<id>/audit.jsonl
+```
+
+The app spawns a small background watcher (`notch-hook desktop`) that **tails
+those logs** and republishes each active session as a status file — so it needs
+**no setup, no MCP server, and no extra permissions**. It maps:
+
+| Claude Desktop audit event              | Shown as                              |
+|-----------------------------------------|---------------------------------------|
+| user prompt / `status: requesting`      | Working — "Thinking…"                 |
+| assistant `tool_use` (Bash, Edit, …)    | Working — "$ npm test", "Editing …"   |
+| assistant `AskUserQuestion`             | **Needs you** — the question text     |
+| `result` (turn complete)                | **Done** — "Finished"                 |
+| `rate_limit_event`                       | **Needs you** — "Rate limited"        |
+
+The project label is the chat's **title**, and **clicking a row focuses Claude
+Desktop**. Only live activity is surfaced — existing history is skipped on launch,
+and the watcher self-exits when the app quits. (Codex still appears as its own
+rows; this is separate.)
 
 Because the UI only reads status files, **any tool** can drive it — write a JSON
 file into the sessions dir using the schema below.

@@ -80,8 +80,20 @@ else
     CODEX_NOTE="  • Codex: not installed (re-run ./install.sh after installing it)"
 fi
 
+# --- Claude Desktop (automatic) ---
+# Claude Desktop has no hooks, but its local "cowork" agent sessions write audit
+# logs we can tail. The app spawns `notch-hook desktop` to watch them, so there's
+# nothing to wire up — we just report whether Claude Desktop is present.
+if [ -d "/Applications/Claude.app" ] || [ -d "$HOME/Applications/Claude.app" ]; then
+    echo "▸ Claude Desktop detected — local agent sessions are tracked automatically."
+    CLAUDE_DESKTOP_NOTE="  • Claude Desktop: tracked automatically (no setup)"
+else
+    echo "▸ Claude Desktop not detected — it'll be picked up automatically if installed later."
+    CLAUDE_DESKTOP_NOTE="  • Claude Desktop: not installed (tracked automatically once it is)"
+fi
+
 echo "▸ Launching app…"
-# Relaunch cleanly.
+# Relaunch cleanly. (The desktop watcher is a child of the app and self-exits.)
 killall NotchAIControl >/dev/null 2>&1 || true
 open "$APP_DEST"
 
@@ -93,6 +105,7 @@ cat <<DONE
   • Hook:  $HOOK_BIN
   • Claude Code hooks merged into $SETTINGS (backup saved alongside)
 $CODEX_NOTE
+$CLAUDE_DESKTOP_NOTE
 
 Open a new Claude Code or Codex session and hover your notch.
 To uninstall:  ./uninstall.sh

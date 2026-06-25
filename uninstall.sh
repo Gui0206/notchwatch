@@ -7,6 +7,8 @@ SETTINGS="$HOME/.claude/settings.json"
 
 echo "▸ Quitting app…"
 killall NotchAIControl >/dev/null 2>&1 || true
+# The Claude Desktop watcher self-exits once the app is gone, but stop it now too.
+pkill -f "notch-hook desktop" >/dev/null 2>&1 || true
 
 echo "▸ Removing app + hook helper…"
 rm -rf "$HOME/Applications/NotchAIControl.app"
